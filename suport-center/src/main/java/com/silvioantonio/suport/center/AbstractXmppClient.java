@@ -17,8 +17,8 @@ import org.jxmpp.jid.EntityBareJid;
 
 public abstract class AbstractXmppClient extends AbstractRosterListener implements AutoCloseable, IncomingChatMessageListener {
     
-    private final Scanner scanner;
-    private final XMPPTCPConnectionConfiguration.Builder configBuilder;
+    private Scanner scanner;
+    private XMPPTCPConnectionConfiguration.Builder configBuilder;
     private Roster roster;
     private XMPPTCPConnection connection;
     private ChatManager chatManager;
@@ -37,11 +37,13 @@ public abstract class AbstractXmppClient extends AbstractRosterListener implemen
         
         if(username.matches(".*@.*")) {
             
-            int i = username.indexOf('@');
+            int i = username.indexOf("@");
 
             domain = username.substring(i+1);
 
             username = username.substring(0, i);
+            System.out.println("username:"+username);
+            System.out.println("domain:"+domain);
             return;
         }
 
@@ -106,7 +108,7 @@ public abstract class AbstractXmppClient extends AbstractRosterListener implemen
     }
 
     protected boolean start(){
-        System.out.print("Digite seu login (usuario@dominio): ");
+        System.out.print("Digite seu login (usuario@dominio):");
         username = scanner.nextLine();
         
         validateUsernameAndDomain();
@@ -115,6 +117,7 @@ public abstract class AbstractXmppClient extends AbstractRosterListener implemen
         password = scanner.nextLine();
 
         if(!connect()){
+            System.out.println("Erro aqui");
             return false;
         }
 
@@ -127,25 +130,31 @@ public abstract class AbstractXmppClient extends AbstractRosterListener implemen
     private boolean connect() {
         try {
             configBuilder
-                    .setUsernameAndPassword(username, password)
+                    .setUsernameAndPassword("testesilvio001", "01477410")
                     .setResource("desktop")
-                    .setXmppDomain(domain)
-                    .setHost(domain);
+                    .setXmppDomain("xabber.org")
+                    .setHost("xabber.org");
 
             connection = new XMPPTCPConnection(configBuilder.build());
-
+            connection.setReplyTimeout(5000);
+            //System.out.println(connection.getStreamId());
+            
+            try{
+                connection.connect();
+            }catch(SmackException | IOException | XMPPException | InterruptedException xmppe){
+                System.err.println("Erro no level de protocolo: "+xmppe);
+            }
+            
             chatManager = ChatManager.getInstanceFor(connection);
+            //chatManager.addIncomingListener(this);
 
-            chatManager.addIncomingListener(this);
-
-            connection.connect();
             System.out.println("Conectado com sucesso no servidor XMPP");
             
-        } catch (SmackException | IOException | XMPPException | InterruptedException e) {
+        } catch (IOException e) {
             System.out.println("Erro ao conectar ao servidor: "+e.getMessage());
             return false;
         }
-
+        
         roster = Roster.getInstanceFor(connection);
 
         Roster.setDefaultSubscriptionMode(Roster.SubscriptionMode.accept_all);

@@ -9,12 +9,11 @@ import org.jxmpp.jid.EntityBareJid;
 public class SuportCenter extends AbstractXmppClient {
     
     public static void main(String[] args) {
-        try {
-            try(SuportCenter client = new SuportCenter()){
-                client.start();
-            }
+        
+        try(SuportCenter client = new SuportCenter()){
+            client.start();
         }catch(RuntimeException e){
-            System.err.println("Erro ao iniciar aplicação: " + e.getMessage());
+            System.err.println("Erro ao iniciar aplicação:1 " +e.toString());
         }
     }
 
